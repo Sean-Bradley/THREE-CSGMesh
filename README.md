@@ -35,7 +35,7 @@ npm install
 npm run dev
 ```
 
-This is a typescript project consisting of two sub projects with there own tsconfigs.
+This is a TypeScript project consisting of two sub projects with there own tsconfigs.
 
 To edit this example, then modify the files in `./src/client/` or `./src/server/`. The projects will auto recompile if you started by using `npm run dev`
 
@@ -50,7 +50,7 @@ You can simply just import the generated `./dist/client/CSGMesh.js` directly int
 or as ES6 import
 
 ```typescript
-import Bender from './CSGMesh.js'
+import CSG from './CSGMesh.js'
 ```
 
 
