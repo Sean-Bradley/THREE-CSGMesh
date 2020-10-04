@@ -14,4 +14,50 @@ Differences Copyright 2020 Sean Bradley : https://sbcode.net/threejs/
 - New GitHub repo
 
 
+## Union
+
+Return a new CSG solid consisting of A and B
+
+    A.union(B)
+
+    +-------+            +-------+
+    |       |            |       |
+    |   A   |            |       |
+    |    +--+----+   =   |       +----+
+    +----+--+    |       +----+       |
+         |   B   |            |       |
+         |       |            |       |
+         +-------+            +-------+
+
+
+## Subtract
+
+Return a new CSG solid where B is subtracted from A
+
+    A.subtract(B)
+
+    +-------+            +-------+
+    |       |            |       |
+    |   A   |            |       |
+    |    +--+----+   =   |    +--+
+    +----+--+    |       +----+
+         |   B   |
+         |       |
+         +-------+
+
+## Intersect
+
+Return a new CSG solid where both A and B overlap
+
+    A.intersect(B)
+
+    +-------+
+    |       |
+    |   A   |
+    |    +--+----+   =   +--+
+    +----+--+    |       +--+
+         |   B   |
+         |       |
+         +-------+
+
 
