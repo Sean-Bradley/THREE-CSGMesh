@@ -13,8 +13,34 @@ Differences Copyright 2020 Sean Bradley : https://sbcode.net/threejs/
 - Much Refactoring
 - New GitHub repo
 
+## Instructions
 
-## Union
+Example 1 : https://sbcode.net/threejs/csg/
+
+Example 2 : https://sbcode.net/threejs/engraving/
+
+![Example](docs/csg.jpg)
+
+This is a typescript project consisting of two sub projects with there own tsconfigs.
+
+To edit this example, then modify the files in `./src/client/` or `./src/server/`. The projects will auto recompile if you started by using `npm run dev`
+
+or
+
+You can simply just import the generated `./dist/client/CSGMesh.js` directly into your project as a module.
+
+```html
+<script type="module" src="./CSGMesh.js"></script>
+```
+
+or as ES6 import
+
+```typescript
+import Bender from './CSGMesh.js'
+```
+
+
+### Union
 
 Return a new CSG solid consisting of A and B
 
@@ -29,8 +55,7 @@ Return a new CSG solid consisting of A and B
          |       |            |       |
          +-------+            +-------+
 
-
-## Subtract
+### Subtract
 
 Return a new CSG solid where B is subtracted from A
 
@@ -45,7 +70,7 @@ Return a new CSG solid where B is subtracted from A
          |       |
          +-------+
 
-## Intersect
+### Intersect
 
 Return a new CSG solid where both A and B overlap
 
@@ -61,3 +86,14 @@ Return a new CSG solid where both A and B overlap
          +-------+
 
 
+
+## Threejs TypeScript Course
+
+Visit https://github.com/Sean-Bradley/Three.js-TypeScript-Boilerplate for a Threejs TypeScript boilerplate containing many extra branches that demonstrate many examples of Threejs.
+
+> To help support this Threejs example, please take a moment to look at my official Threejs TypeScript course at 
+
+[![Threejs TypeScript Course](docs/threejs-course-image.png)](https://www.udemy.com/course/threejs-tutorials/?referralCode=4C7E1DE91C3E42F69D0F)
+
+  [Three.js and TypeScript](https://www.udemy.com/course/threejs-tutorials/?referralCode=4C7E1DE91C3E42F69D0F)<br/>  
+  Discount Coupons for all my courses can be found at [https://sbcode.net/coupons](https://sbcode.net/coupons)
