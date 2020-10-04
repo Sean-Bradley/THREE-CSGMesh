@@ -84,7 +84,7 @@ CSG.fromGeometry = function (geom) {
         geom = new THREE.Geometry().fromBufferGeometry(geom);
     const fs = geom.faces;
     const vs = geom.vertices;
-    const polys = [];
+    const polys = new Array();
     const fm = ['a', 'b', 'c'];
     for (let i = 0; i < fs.length; i++) {
         const f = fs[i];
@@ -123,7 +123,7 @@ CSG.toMesh = function (csg, toMatrix) {
             vs.push(new THREE.Vector3().copy(pvs[j].pos));
         for (let j = 3; j <= pvlen; j++) {
             const fc = new THREE.Face3(0, 0, 0);
-            const fuv = [];
+            const fuv = new Array();
             fvuv.push(fuv);
             const fnml = fc.vertexNormals;
             fc.a = v0;
@@ -172,8 +172,8 @@ CSG.ieval = function (tokens) {
     } //union,subtract,intersect,inverse
 };
 CSG.eval = function (tokens, doRemove) {
-    CSG.currentOp = null;
-    CSG.sourceMesh = null;
+    //CSG.currentOp = null;
+    //CSG.sourceMesh = null;
     CSG.doRemove = doRemove;
     CSG.ieval(tokens);
     const result = CSG.toMesh(CSG.currentPrim, CSG.sourceMesh.matrix);
@@ -243,6 +243,7 @@ class Vector extends THREE.Vector3 {
 // is not used anywhere else.
 class Vertex {
     constructor(pos, normal, uv) {
+        this.uv = new THREE.Vector3();
         this.pos = new Vector(pos.x, pos.y, pos.z);
         this.normal = new Vector(normal.x, normal.y, normal.z);
         if (uv)

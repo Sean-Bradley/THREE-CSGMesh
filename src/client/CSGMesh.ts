@@ -95,7 +95,7 @@ export default class CSG {
             geom = new THREE.Geometry().fromBufferGeometry(geom as THREE.BufferGeometry)
         const fs = (geom as THREE.Geometry).faces;
         const vs = (geom as THREE.Geometry).vertices;
-        const polys = []
+        const polys = new Array()
         const fm = ['a', 'b', 'c']
         for (let i = 0; i < fs.length; i++) {
             const f = fs[i];
@@ -143,7 +143,7 @@ export default class CSG {
 
             for (let j = 3; j <= pvlen; j++) {
                 const fc = new THREE.Face3(0, 0, 0);
-                const fuv = []
+                const fuv = new Array()
                 fvuv.push(fuv)
                 const fnml = fc.vertexNormals;
                 fc.a = v0;
@@ -194,8 +194,8 @@ export default class CSG {
     }
 
     static eval = function (tokens: string | object | any[], doRemove: boolean) {//[['add',mesh,mesh,mesh,mesh],['sub',mesh,mesh,mesh,mesh]]
-        CSG.currentOp = null;
-        CSG.sourceMesh = null;
+        //CSG.currentOp = null;
+        //CSG.sourceMesh = null;
         CSG.doRemove = doRemove;
         CSG.ieval(tokens)
         const result = CSG.toMesh(CSG.currentPrim, CSG.sourceMesh.matrix);
@@ -275,7 +275,7 @@ class Vertex {
 
     pos: THREE.Vector3
     normal: THREE.Vector3
-    uv: THREE.Vector3
+    uv = new THREE.Vector3()
 
     constructor(pos: THREE.Vector3, normal: THREE.Vector3, uv?: THREE.Vector3) {
         this.pos = new Vector(pos.x, pos.y, pos.z);

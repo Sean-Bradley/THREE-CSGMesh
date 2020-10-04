@@ -9,8 +9,7 @@
             "/jsm/*": ["../../node_modules/three/examples/jsm/*"],
             "/jsm/libs/dat.gui.module": ["../../node_modules/@types/dat.gui"]
         },
-        "moduleResolution": "node",
-        "strict": true
+        "moduleResolution": "node"
     },
     "include": [
         "**/*.ts"

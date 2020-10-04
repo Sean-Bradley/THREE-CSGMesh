@@ -4,20 +4,21 @@ This repo is originally forked from https://github.com/manthrax/THREE-CSGMesh wh
 - Copyright 2011 Evan Wallace (http://madebyevan.com/), MIT license.
 - Copyright 2020 Michael Schlachter (https://github.com/manthrax), MIT license.
 
-Differences Copyright 2020 Sean Bradley : https://sbcode.net/threejs/
+My modifications,
 
 - Started with CSGMesh.js from https://github.com/manthrax/THREE-CSGMesh/blob/master/CSGMesh.js
 - Converted to TypeScript by adding type annotations to all variables
-- Converted var to const and let
+- Converted `var` to `const` and `let`
 - More THREEJS integration (THREE r121)
 - Much Refactoring
 - New GitHub repo
+- Working Examples
 
-## Instructions
+## Examples
 
-Example 1 : https://sbcode.net/threejs/csg/
+1 : https://sbcode.net/threejs/csg/
 
-Example 2 : https://sbcode.net/threejs/engraving/
+2 : https://sbcode.net/threejs/engraving/
 
 ![Example](docs/csg.jpg)
 
