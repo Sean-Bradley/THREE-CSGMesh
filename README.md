@@ -14,7 +14,13 @@ My modifications,
 - New GitHub repo
 - Working Examples
 
-## Examples
+## Constructive Solid Geometry
+
+Perform binary operations on mesh geometries. 
+
+- [Union](#Union) : Return a new CSG solid consisting of A and B
+- [Subtract](#Subtract) : Return a new CSG solid where B is subtracted from A
+- [Intersect](#Intersect) : Return a new CSG solid where both A and B overlap
 
 1 : https://sbcode.net/threejs/csg/
 
