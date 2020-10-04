@@ -16,7 +16,7 @@ My modifications,
 
 ## Constructive Solid Geometry
 
-Perform binary operations on mesh geometries. 
+Perform binary operations on mesh geometries. Works with geometries of base type THREE.Geometry and THREE.BufferGeometry.
 
 - [Union](#Union) : Return a new CSG solid consisting of A and B
 - [Subtract](#Subtract) : Return a new CSG solid where B is subtracted from A
@@ -27,6 +27,13 @@ Perform binary operations on mesh geometries.
 2 : https://sbcode.net/threejs/engraving/
 
 ![Example](docs/csg.jpg)
+
+```bash
+git clone https://github.com/Sean-Bradley/THREE-CSGMesh.git
+cd THREE-CSGMesh
+npm install
+npm run dev
+```
 
 This is a typescript project consisting of two sub projects with there own tsconfigs.
 

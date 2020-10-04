@@ -48,11 +48,11 @@ const material = new THREE.MeshPhysicalMaterial({
 
 
 //create a cube and sphere and intersect them
-const cubeMesh = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), new THREE.MeshPhongMaterial({ color: 0xff0000 }));
-const sphereMesh = new THREE.Mesh(new THREE.SphereGeometry(1.45, 8, 8), new THREE.MeshPhongMaterial({ color: 0x0000ff }));
-const cylinderMesh1 = new THREE.Mesh(new THREE.CylinderGeometry(.85, .85, 2, 8, 1, false), new THREE.MeshPhongMaterial({ color: 0x00ff00 }));
-const cylinderMesh2 = new THREE.Mesh(new THREE.CylinderGeometry(.85, .85, 2, 8, 1, false), new THREE.MeshPhongMaterial({ color: 0x00ff00 }));
-const cylinderMesh3 = new THREE.Mesh(new THREE.CylinderGeometry(.85, .85, 2, 8, 1, false), new THREE.MeshPhongMaterial({ color: 0x00ff00 }));
+const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(2, 2, 2), new THREE.MeshPhongMaterial({ color: 0xff0000 }));
+const sphereMesh = new THREE.Mesh(new THREE.SphereBufferGeometry(1.45, 8, 8), new THREE.MeshPhongMaterial({ color: 0x0000ff }));
+const cylinderMesh1 = new THREE.Mesh(new THREE.CylinderBufferGeometry(.85, .85, 2, 8, 1, false), new THREE.MeshPhongMaterial({ color: 0x00ff00 }));
+const cylinderMesh2 = new THREE.Mesh(new THREE.CylinderBufferGeometry(.85, .85, 2, 8, 1, false), new THREE.MeshPhongMaterial({ color: 0x00ff00 }));
+const cylinderMesh3 = new THREE.Mesh(new THREE.CylinderBufferGeometry(.85, .85, 2, 8, 1, false), new THREE.MeshPhongMaterial({ color: 0x00ff00 }));
 
 cubeMesh.position.set(-5, 0, -6)
 scene.add(cubeMesh)
