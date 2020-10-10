@@ -8,7 +8,7 @@
 // Holds a binary space partition tree representing a 3D solid. Two solids can
 // be combined using the `union()`, `subtract()`, and `intersect()` methods.
 //
-// Differences Copyright 2020 Sean Bradley : https://sbcode.net/threejs/
+// Differences Copyright 2020 Sean Bradley : https://github.com/Sean-Bradley/THREE-CSGMesh
 // - Started with CSGMesh.js from https://github.com/manthrax/THREE-CSGMesh/blob/master/CSGMesh.js
 // - Converted to TypeScript by adding type annotations to all variables
 // - Converted var to const and let
