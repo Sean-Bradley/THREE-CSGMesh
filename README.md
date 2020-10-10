@@ -22,9 +22,9 @@ Perform binary operations on mesh geometries. Works with geometries of base type
 - [Subtract](#Subtract) : Return a new CSG solid where B is subtracted from A
 - [Intersect](#Intersect) : Return a new CSG solid where both A and B overlap
 
-1 : https://sbcode.net/threejs/csg/
+Example 1 : https://sbcode.net/threejs/csg/
 
-2 : https://sbcode.net/threejs/engraving/
+Example 2 : https://sbcode.net/threejs/engraving/
 
 ![Example](docs/csg.jpg)
 
