@@ -7,16 +7,18 @@
 // Holds a binary space partition tree representing a 3D solid. Two solids can
 // be combined using the `union()`, `subtract()`, and `intersect()` methods.
 //
-// Differences Copyright 2020 Sean Bradley : https://github.com/Sean-Bradley/THREE-CSGMesh
+// Differences Copyright 2020-2021 Sean Bradley : https://sbcode.net/threejs/
 // - Started with CSGMesh.js from https://github.com/manthrax/THREE-CSGMesh/blob/master/CSGMesh.js
 // - Converted to TypeScript by adding type annotations to all variables
 // - Converted var to const and let
 // - More THREEJS integration (THREE r119)
 // - Some Refactoring
+// - support for three r125
 
 import * as THREE from '/build/three.module.js'
+import { Geometry } from '/jsm/deprecated/Geometry.js'
 
-export default class CSG {
+class CSG {
     polygons: Polygon[]
 
     constructor() {
@@ -90,12 +92,12 @@ export default class CSG {
         return csg;
     }
 
-    static fromGeometry = function (geom: THREE.Geometry | THREE.BufferGeometry) {
+    static fromGeometry = function (geom: Geometry | THREE.BufferGeometry) {
         if ((geom as THREE.BufferGeometry).isBufferGeometry)
-            geom = new THREE.Geometry().fromBufferGeometry(geom as THREE.BufferGeometry)
-        const fs = (geom as THREE.Geometry).faces;
-        const vs = (geom as THREE.Geometry).vertices;
-        const polys = new Array()
+            geom = new Geometry().fromBufferGeometry(geom as THREE.BufferGeometry)
+        const fs = (geom as Geometry).faces;
+        const vs = (geom as Geometry).vertices;
+        const polys = []
         const fm = ['a', 'b', 'c']
         for (let i = 0; i < fs.length; i++) {
             const f = fs[i];
@@ -128,7 +130,7 @@ export default class CSG {
     }
 
     static toMesh = function (csg: CSG, toMatrix: THREE.Matrix4) {
-        const geom = new THREE.Geometry();
+        const geom = new Geometry();
         const ps = csg.polygons;
         const vs = geom.vertices;
         const fvuv = geom.faceVertexUvs[0]
@@ -143,7 +145,7 @@ export default class CSG {
 
             for (let j = 3; j <= pvlen; j++) {
                 const fc = new THREE.Face3(0, 0, 0);
-                const fuv = new Array()
+                const fuv = []
                 fvuv.push(fuv)
                 const fnml = fc.vertexNormals;
                 fc.a = v0;
@@ -161,12 +163,13 @@ export default class CSG {
                 geom.faces.push(fc)
             }
         }
-        const inv = new THREE.Matrix4().getInverse(toMatrix);
+        //const inv = new THREE.Matrix4().getInverse(toMatrix);
+        const inv = new THREE.Matrix4().copy(toMatrix).invert()
         geom.applyMatrix4(inv);
         geom.verticesNeedUpdate = geom.elementsNeedUpdate = geom.normalsNeedUpdate = true;
         geom.computeBoundingSphere();
         geom.computeBoundingBox();
-        const m = new THREE.Mesh(geom);
+        const m = new THREE.Mesh(geom.toBufferGeometry());
         m.matrix.copy(toMatrix);
         m.matrix.decompose(m.position, m.quaternion, m.scale)
         m.updateMatrixWorld();
@@ -194,8 +197,8 @@ export default class CSG {
     }
 
     static eval = function (tokens: string | object | any[], doRemove: boolean) {//[['add',mesh,mesh,mesh,mesh],['sub',mesh,mesh,mesh,mesh]]
-        //CSG.currentOp = null;
-        //CSG.sourceMesh = null;
+        CSG.currentOp = null;
+        CSG.sourceMesh = null;
         CSG.doRemove = doRemove;
         CSG.ieval(tokens)
         const result = CSG.toMesh(CSG.currentPrim, CSG.sourceMesh.matrix);
@@ -275,7 +278,7 @@ class Vertex {
 
     pos: THREE.Vector3
     normal: THREE.Vector3
-    uv = new THREE.Vector3()
+    uv: THREE.Vector3
 
     constructor(pos: THREE.Vector3, normal: THREE.Vector3, uv?: THREE.Vector3) {
         this.pos = new Vector(pos.x, pos.y, pos.z);
@@ -547,6 +550,8 @@ class Node {
         }
     }
 }
+
+export default CSG
 
 // Return a new CSG solid representing space in either this solid or in the
 // solid `csg`. Neither this solid nor the solid `csg` are modified.

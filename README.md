@@ -13,6 +13,7 @@ My modifications,
 - Much Refactoring
 - New GitHub repo
 - Working Examples
+- support for three r125
 
 ## Constructive Solid Geometry
 
@@ -34,6 +35,8 @@ cd THREE-CSGMesh
 npm install
 npm run dev
 ```
+
+Visit http://127.0.0.1:3000
 
 This is a TypeScript project consisting of two sub projects with there own tsconfigs.
 
