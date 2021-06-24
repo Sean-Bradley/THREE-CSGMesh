@@ -14,7 +14,7 @@ My modifications,
 * Much Refactoring
 * New GitHub repo
 * Working Examples
-* support for three r125
+* support for three r129 
 
 ## Constructive Solid Geometry
 
@@ -37,25 +37,16 @@ npm install
 npm run dev
 ```
 
-Visit http://127.0.0.1:3000
+Visit http://127.0.0.1:8080
 
 This is a TypeScript project consisting of two sub projects with there own tsconfigs.
 
-To edit this example, then modify the files in `./src/client/` or `./src/server/` . The projects will auto recompile if you started by using `npm run dev`
+To edit the client `./src/client/client.ts`. If you started using `npm run dev`, changes will be auto rebuilt and your browser refreshed due to WebPacks hot module reloading.
 
-or
+The server component in folder `./src/server/` is not used in development mode. It is useful if you want to run the production build through a nodejs express server. See `./src/server/server.ts` for further instructions.
 
-You can simply just import the generated `./dist/client/CSGMesh.js` directly into your project as a module.
 
-``` html
-<script type="module" src="./CSGMesh.js"></script>
-```
 
-or as ES6 import
-
-``` typescript
-import CSG from './CSGMesh.js'
-```
 
 ### Union
 
