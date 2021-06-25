@@ -41,10 +41,16 @@ const controls = new OrbitControls(camera, renderer.domElement)
 const envTexture = new THREE.CubeTextureLoader().load(["img/px_25.jpg", "img/nx_25.jpg", "img/py_25.jpg", "img/ny_25.jpg", "img/pz_25.jpg", "img/nz_25.jpg"])
 envTexture.mapping = THREE.CubeReflectionMapping
 const material = new THREE.MeshPhysicalMaterial({
+    color: 0xb2ffc8,
     envMap: envTexture,
-    metalness: 0.99,
-    roughness: 0.1
-})
+    metalness: .1,
+    roughness: 0.1,
+    transparent: true,
+    transmission: 1.0,
+    side: THREE.DoubleSide,
+    clearcoat: 1.0,
+    clearcoatRoughness: .25
+});
 
 
 //create a cube and sphere and intersect them
@@ -114,6 +120,10 @@ var animate = function () {
     requestAnimationFrame(animate)
 
     controls.update()
+    if(finalMesh){
+        finalMesh.rotation.y+=.005
+        finalMesh.rotation.z+=.0025
+    }
 
     render()
 
