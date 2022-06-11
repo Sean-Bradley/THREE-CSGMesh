@@ -12,7 +12,7 @@
  * - Converted to TypeScript by adding type annotations to all variables
  * - Converted var to const and let
  * - Some Refactoring
- * - support for three r130
+ * - support for three r141
  */
 
 import * as THREE from 'three'
