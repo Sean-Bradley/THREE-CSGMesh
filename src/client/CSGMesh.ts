@@ -1,6 +1,8 @@
 /**
+ * GitHub Repo : https://github.com/Sean-Bradley/THREE-CSGMesh
+ * License : MIT
  *
- * Copyright (c) 2011 Evan Wallace (http://madebyevan.com/), under the MIT license.
+ * Original work copyright (c) 2011 Evan Wallace (http://madebyevan.com/), under the MIT license.
  * THREE.js rework by thrax
  *
  * # class CSG
@@ -91,10 +93,7 @@ class CSG {
         return csg
     }
 
-    static fromGeometry = function (
-        geom: THREE.BufferGeometry,
-        objectIndex?: object
-    ) {
+    static fromGeometry = function (geom: THREE.BufferGeometry, objectIndex?: object) {
         let polys = []
         let posattr = geom.attributes.position
         let normalattr = geom.attributes.normal
@@ -127,24 +126,24 @@ class CSG {
                     {
                         x: x,
                         y: y,
-                        z: z
+                        z: z,
                     } as Vector,
                     {
                         x: nx,
                         y: ny,
-                        z: nz
+                        z: nz,
                     } as Vector,
                     {
                         x: u,
                         y: v,
-                        z: 0
+                        z: 0,
                     } as Vector,
                     colorattr &&
-                    ({
-                        x: colorattr.array[vt],
-                        y: colorattr.array[vt + 1],
-                        z: colorattr.array[vt + 2]
-                    } as Vector)
+                        ({
+                            x: colorattr.array[vt],
+                            y: colorattr.array[vt + 1],
+                            z: colorattr.array[vt + 2],
+                        } as Vector)
                 )
             }
             polys[pli] = new Polygon(vertices, objectIndex)
@@ -169,13 +168,7 @@ class CSG {
                 )
                 v.normal.copy(
                     CSG.ttvv0
-                        .copy(
-                            new THREE.Vector3(
-                                v.normal.x,
-                                v.normal.y,
-                                v.normal.z
-                            )
-                        )
+                        .copy(new THREE.Vector3(v.normal.x, v.normal.y, v.normal.z))
                         .applyMatrix3(CSG.tmpm3)
                 )
             }
@@ -191,7 +184,7 @@ class CSG {
                 this.array[this.top++] = v.x
                 this.array[this.top++] = v.y
                 this.array[this.top++] = v.z
-            }
+            },
         }
     }
     static nbuf2 = (ct: number) => {
@@ -201,15 +194,11 @@ class CSG {
             write: function (v: Vector) {
                 this.array[this.top++] = v.x
                 this.array[this.top++] = v.y
-            }
+            },
         }
     }
 
-    static toMesh = function (
-        csg: CSG,
-        toMatrix: THREE.Matrix4,
-        toMaterial?: THREE.Material
-    ) {
+    static toMesh = function (csg: CSG, toMatrix: THREE.Matrix4, toMaterial?: THREE.Material) {
         let ps = csg.polygons
         let geom: THREE.BufferGeometry
 
@@ -253,17 +242,10 @@ class CSG {
                         colors.write(pvs[j - 1].color))
             }
         })
-        geom.setAttribute(
-            'position',
-            new THREE.BufferAttribute(vertices.array, 3)
-        )
+        geom.setAttribute('position', new THREE.BufferAttribute(vertices.array, 3))
         geom.setAttribute('normal', new THREE.BufferAttribute(normals.array, 3))
         geom.setAttribute('uv', new THREE.BufferAttribute(uvs.array, 2))
-        colors &&
-            geom.setAttribute(
-                'color',
-                new THREE.BufferAttribute(colors.array, 3)
-            )
+        colors && geom.setAttribute('color', new THREE.BufferAttribute(colors.array, 3))
         if (grps.length) {
             let index: any[] = []
             let gbase = 0
@@ -470,8 +452,7 @@ class Plane {
         let types = []
         for (let i = 0; i < polygon.vertices.length; i++) {
             let t = this.normal.dot(polygon.vertices[i].pos) - this.w
-            let type =
-                t < -Plane.EPSILON ? BACK : t > Plane.EPSILON ? FRONT : COPLANAR
+            let type = t < -Plane.EPSILON ? BACK : t > Plane.EPSILON ? FRONT : COPLANAR
             polygonType |= type
             types.push(type)
         }
@@ -479,10 +460,9 @@ class Plane {
         // Put the polygon in the correct list, splitting it when necessary.
         switch (polygonType) {
             case COPLANAR:
-                ; (this.normal.dot(polygon.plane.normal) > 0
-                    ? coplanarFront
-                    : coplanarBack
-                ).push(polygon)
+                ;(this.normal.dot(polygon.plane.normal) > 0 ? coplanarFront : coplanarBack).push(
+                    polygon
+                )
                 break
             case FRONT:
                 front.push(polygon)
@@ -643,13 +623,7 @@ class Node {
         let front: Polygon[] = []
         let back: Polygon[] = []
         for (let i = 0; i < polygons.length; i++) {
-            this.plane.splitPolygon(
-                polygons[i],
-                this.polygons,
-                this.polygons,
-                front,
-                back
-            )
+            this.plane.splitPolygon(polygons[i], this.polygons, this.polygons, front, back)
         }
         if (front.length) {
             if (!this.front) this.front = new Node()
@@ -666,9 +640,7 @@ class Node {
             json.polygons.map(
                 (p) =>
                     new Polygon(
-                        p.vertices.map(
-                            (v) => new Vertex(v.pos, v.normal, v.uv)
-                        ),
+                        p.vertices.map((v) => new Vertex(v.pos, v.normal, v.uv)),
                         p.shared
                     )
             )
@@ -678,45 +650,45 @@ class Node {
 
 export { CSG, Vertex, Vector, Polygon, Plane }
 
- // Return a new CSG solid representing space in either this solid or in the
- // solid `csg`. Neither this solid nor the solid `csg` are modified.
- //
- //     A.union(B)
- //
- //     +-------+            +-------+
- //     |       |            |       |
- //     |   A   |            |       |
- //     |    +--+----+   =   |       +----+
- //     +----+--+    |       +----+       |
- //          |   B   |            |       |
- //          |       |            |       |
- //          +-------+            +-------+
- //
- // Return a new CSG solid representing space in this solid but not in the
- // solid `csg`. Neither this solid nor the solid `csg` are modified.
- //
- //     A.subtract(B)
- //
- //     +-------+            +-------+
- //     |       |            |       |
- //     |   A   |            |       |
- //     |    +--+----+   =   |    +--+
- //     +----+--+    |       +----+
- //          |   B   |
- //          |       |
- //          +-------+
- //
- // Return a new CSG solid representing space both this solid and in the
- // solid `csg`. Neither this solid nor the solid `csg` are modified.
- //
- //     A.intersect(B)
- //
- //     +-------+
- //     |       |
- //     |   A   |
- //     |    +--+----+   =   +--+
- //     +----+--+    |       +--+
- //          |   B   |
- //          |       |
- //          +-------+
- //
+// Return a new CSG solid representing space in either this solid or in the
+// solid `csg`. Neither this solid nor the solid `csg` are modified.
+//
+//     A.union(B)
+//
+//     +-------+            +-------+
+//     |       |            |       |
+//     |   A   |            |       |
+//     |    +--+----+   =   |       +----+
+//     +----+--+    |       +----+       |
+//          |   B   |            |       |
+//          |       |            |       |
+//          +-------+            +-------+
+//
+// Return a new CSG solid representing space in this solid but not in the
+// solid `csg`. Neither this solid nor the solid `csg` are modified.
+//
+//     A.subtract(B)
+//
+//     +-------+            +-------+
+//     |       |            |       |
+//     |   A   |            |       |
+//     |    +--+----+   =   |    +--+
+//     +----+--+    |       +----+
+//          |   B   |
+//          |       |
+//          +-------+
+//
+// Return a new CSG solid representing space both this solid and in the
+// solid `csg`. Neither this solid nor the solid `csg` are modified.
+//
+//     A.intersect(B)
+//
+//     +-------+
+//     |       |
+//     |   A   |
+//     |    +--+----+   =   +--+
+//     +----+--+    |       +--+
+//          |   B   |
+//          |       |
+//          +-------+
+//
