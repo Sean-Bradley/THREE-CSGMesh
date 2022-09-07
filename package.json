@@ -9,7 +9,8 @@
     "build": "webpack --config ./src/client/webpack.prod.js",
     "dev": "webpack serve --config ./src/client/webpack.dev.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node ./dist/server/server.js"
+    "start": "node ./dist/server/server.js",
+    "build-CSGMesh": "tsc.cmd ./src/client/CSGMesh.ts --outdir ./dist/client --target ES6"
   },
   "repository": {
     "type": "git",
