@@ -15,17 +15,19 @@
  * - Converted var to const and let
  * - Some Refactoring
  * - support for three r141
+ * - updated for three r150
  */
 import * as THREE from 'three';
+// # class CSG
+// Holds a binary space partition tree representing a 3D solid. Two solids can
+// be combined using the `union()`, `subtract()`, and `intersect()` methods.
 class CSG {
     constructor() {
         this.polygons = [];
     }
     clone() {
-        const csg = new CSG();
-        csg.polygons = this.polygons.map(function (p) {
-            return p.clone();
-        });
+        let csg = new CSG();
+        csg.polygons = this.polygons.map((p) => p.clone());
         return csg;
     }
     toPolygons() {
@@ -70,16 +72,14 @@ class CSG {
     // Return a new CSG solid with solid and empty space switched. This solid is
     // not modified.
     inverse() {
-        const csg = this.clone();
-        csg.polygons.map(function (p) {
-            p.flip();
-        });
+        let csg = this.clone();
+        csg.polygons.forEach((p) => p.flip());
         return csg;
     }
 }
 // Construct a CSG solid from a list of `Polygon` instances.
 CSG.fromPolygons = function (polygons) {
-    const csg = new CSG();
+    let csg = new CSG();
     csg.polygons = polygons;
     return csg;
 };
@@ -90,9 +90,8 @@ CSG.fromGeometry = function (geom, objectIndex) {
     let uvattr = geom.attributes.uv;
     let colorattr = geom.attributes.color;
     let index;
-    if (geom.index) {
+    if (geom.index)
         index = geom.index.array;
-    }
     else {
         index = new Array((posattr.array.length / posattr.itemSize) | 0);
         for (let i = 0; i < index.length; i++)
@@ -112,8 +111,8 @@ CSG.fromGeometry = function (geom, objectIndex) {
             let nx = normalattr.array[vp];
             let ny = normalattr.array[vp + 1];
             let nz = normalattr.array[vp + 2];
-            let u = uvattr.array[vt];
-            let v = uvattr.array[vt + 1];
+            //let u = uvattr.array[vt]
+            //let v = uvattr.array[vt + 1]
             vertices[j] = new Vertex({
                 x: x,
                 y: y,
@@ -122,11 +121,12 @@ CSG.fromGeometry = function (geom, objectIndex) {
                 x: nx,
                 y: ny,
                 z: nz,
-            }, {
-                x: u,
-                y: v,
-                z: 0,
-            }, colorattr &&
+            }, uvattr &&
+                {
+                    x: uvattr.array[vt],
+                    y: uvattr.array[vt + 1],
+                    z: 0,
+                }, colorattr &&
                 {
                     x: colorattr.array[vt],
                     y: colorattr.array[vt + 1],
@@ -140,7 +140,7 @@ CSG.fromGeometry = function (geom, objectIndex) {
 CSG.ttvv0 = new THREE.Vector3();
 CSG.tmpm3 = new THREE.Matrix3();
 CSG.fromMesh = function (mesh, objectIndex) {
-    const csg = CSG.fromGeometry(mesh.geometry, objectIndex);
+    let csg = CSG.fromGeometry(mesh.geometry, objectIndex);
     CSG.tmpm3.getNormalMatrix(mesh.matrix);
     for (let i = 0; i < csg.polygons.length; i++) {
         let p = csg.polygons[i];
@@ -177,17 +177,18 @@ CSG.nbuf2 = (ct) => {
         },
     };
 };
-CSG.toMesh = function (csg, toMatrix, toMaterial) {
+CSG.toGeometry = function (csg) {
     let ps = csg.polygons;
     let geom;
+    let g2;
     let triCount = 0;
     ps.forEach((p) => (triCount += p.vertices.length - 2));
     geom = new THREE.BufferGeometry();
     let vertices = CSG.nbuf3(triCount * 3 * 3);
     let normals = CSG.nbuf3(triCount * 3 * 3);
-    let uvs = CSG.nbuf2(triCount * 2 * 3);
+    let uvs;
     let colors;
-    let grps = [];
+    const grps = {};
     ps.forEach((p) => {
         let pvs = p.vertices;
         let pvlen = pvs.length;
@@ -195,9 +196,15 @@ CSG.toMesh = function (csg, toMatrix, toMaterial) {
             if (!grps[p.shared])
                 grps[p.shared] = [];
         }
-        if (pvlen && pvs[0].color !== undefined) {
-            if (!colors)
-                colors = CSG.nbuf3(triCount * 3 * 3);
+        if (pvlen) {
+            if (pvs[0].color !== undefined) {
+                if (!colors)
+                    colors = CSG.nbuf3(triCount * 3 * 3);
+            }
+            if (pvs[0].uv !== undefined) {
+                if (!uvs)
+                    uvs = CSG.nbuf2(triCount * 2 * 3);
+            }
         }
         for (let j = 3; j <= pvlen; j++) {
             p.shared !== undefined &&
@@ -208,9 +215,9 @@ CSG.toMesh = function (csg, toMatrix, toMaterial) {
             normals.write(pvs[0].normal);
             normals.write(pvs[j - 2].normal);
             normals.write(pvs[j - 1].normal);
-            uvs.write(pvs[0].uv);
-            uvs.write(pvs[j - 2].uv);
-            uvs.write(pvs[j - 1].uv);
+            uvs &&
+                pvs[0].uv &&
+                (uvs.write(pvs[0].uv) || uvs.write(pvs[j - 2].uv) || uvs.write(pvs[j - 1].uv));
             colors &&
                 (colors.write(pvs[0].color) ||
                     colors.write(pvs[j - 2].color) ||
@@ -219,18 +226,24 @@ CSG.toMesh = function (csg, toMatrix, toMaterial) {
     });
     geom.setAttribute('position', new THREE.BufferAttribute(vertices.array, 3));
     geom.setAttribute('normal', new THREE.BufferAttribute(normals.array, 3));
-    geom.setAttribute('uv', new THREE.BufferAttribute(uvs.array, 2));
+    uvs && geom.setAttribute('uv', new THREE.BufferAttribute(uvs.array, 2));
     colors && geom.setAttribute('color', new THREE.BufferAttribute(colors.array, 3));
-    if (grps.length) {
+    if (Object.keys(grps).length) {
         let index = [];
         let gbase = 0;
-        for (let gi = 0; gi < grps.length; gi++) {
-            geom.addGroup(gbase, grps[gi].length, gi);
-            gbase += grps[gi].length;
-            index = index.concat(grps[gi]);
+        for (let gi = 0; gi < Object.keys(grps).length; gi++) {
+            const key = Number(Object.keys(grps)[gi]);
+            geom.addGroup(gbase, grps[key].length, gi);
+            gbase += grps[key].length;
+            index = index.concat(grps[key]);
         }
         geom.setIndex(index);
     }
+    g2 = geom;
+    return geom;
+};
+CSG.toMesh = function (csg, toMatrix, toMaterial) {
+    let geom = CSG.toGeometry(csg);
     let inv = new THREE.Matrix4().copy(toMatrix).invert();
     geom.applyMatrix4(inv);
     geom.computeBoundingSphere();
@@ -295,7 +308,7 @@ class Vector {
         return this;
     }
     lerp(a, t) {
-        return this.add(tv0.copy(a).sub(this).times(t));
+        return this.add(Vector.tv0.copy(a).sub(this).times(t));
     }
     unit() {
         return this.dividedBy(this.length());
@@ -320,8 +333,8 @@ class Vector {
     }
 }
 //Temporaries used to avoid internal allocation..
-let tv0 = new Vector(0, 0, 0);
-let tv1 = new Vector(0, 0, 0);
+Vector.tv0 = new Vector();
+Vector.tv1 = new Vector();
 // # class Vertex
 // Represents a vertex of a polygon. Use your own vertex class instead of this
 // one to provide additional features like texture coordinates and vertex
@@ -334,8 +347,7 @@ class Vertex {
     constructor(pos, normal, uv, color) {
         this.pos = new Vector().copy(pos);
         this.normal = new Vector().copy(normal);
-        this.uv = new Vector().copy(uv);
-        this.uv.z = 0;
+        uv && (this.uv = new Vector().copy(uv)) && (this.uv.z = 0);
         color && (this.color = new Vector().copy(color));
     }
     clone() {
@@ -350,7 +362,7 @@ class Vertex {
     // interpolating all properties using a parameter of `t`. Subclasses should
     // override this to interpolate additional properties.
     interpolate(other, t) {
-        return new Vertex(this.pos.clone().lerp(other.pos, t), this.normal.clone().lerp(other.normal, t), this.uv.clone().lerp(other.uv, t), this.color && other.color && this.color.clone().lerp(other.color, t));
+        return new Vertex(this.pos.clone().lerp(other.pos, t), this.normal.clone().lerp(other.normal, t), this.uv && other.uv && this.uv.clone().lerp(other.uv, t), this.color && other.color && this.color.clone().lerp(other.color, t));
     }
 }
 // # class Plane
@@ -411,7 +423,7 @@ class Plane {
                         b.push(ti != BACK ? vi.clone() : vi);
                     if ((ti | tj) == SPANNING) {
                         let t = (this.w - this.normal.dot(vi.pos)) /
-                            this.normal.dot(tv0.copy(vj.pos).sub(vi.pos));
+                            this.normal.dot(Vector.tv0.copy(vj.pos).sub(vi.pos));
                         let v = vi.interpolate(vj, t);
                         f.push(v);
                         b.push(v.clone());
@@ -429,7 +441,7 @@ class Plane {
 // point is on the plane.
 Plane.EPSILON = 1e-5;
 Plane.fromPoints = function (a, b, c) {
-    let n = tv0.copy(b).sub(a).cross(tv1.copy(c).sub(a)).normalize();
+    let n = Vector.tv0.copy(b).sub(a).cross(Vector.tv1.copy(c).sub(a)).normalize();
     return new Plane(n.clone(), n.dot(a));
 };
 // # class Polygon
@@ -451,7 +463,7 @@ class Polygon {
         return new Polygon(this.vertices.map((v) => v.clone()), this.shared);
     }
     flip() {
-        this.vertices.reverse().map((v) => v.flip());
+        this.vertices.reverse().forEach((v) => v.flip());
         this.plane.flip();
     }
 }
@@ -491,8 +503,7 @@ class Node {
     clipPolygons(polygons) {
         if (!this.plane)
             return polygons.slice();
-        let front = [];
-        let back = [];
+        let front = [], back = [];
         for (let i = 0; i < polygons.length; i++) {
             this.plane.splitPolygon(polygons[i], front, back, front, back);
         }
@@ -502,6 +513,7 @@ class Node {
             back = this.back.clipPolygons(back);
         else
             back = [];
+        //return front;
         return front.concat(back);
     }
     // Remove all polygons in this BSP tree that are inside the other BSP tree
@@ -531,8 +543,7 @@ class Node {
             return;
         if (!this.plane)
             this.plane = polygons[0].plane.clone();
-        let front = [];
-        let back = [];
+        let front = [], back = [];
         for (let i = 0; i < polygons.length; i++) {
             this.plane.splitPolygon(polygons[i], this.polygons, this.polygons, front, back);
         }
