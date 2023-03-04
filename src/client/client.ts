@@ -38,33 +38,6 @@ document.body.appendChild(renderer.domElement)
 
 const controls = new OrbitControls(camera, renderer.domElement)
 
-const material = new THREE.MeshPhysicalMaterial({})
-material.thickness = 3.0
-material.roughness = 0.9
-material.clearcoat = 0.1
-material.clearcoatRoughness = 0
-material.transmission = 0.99
-material.ior = 1.25
-material.envMapIntensity = 25
-
-const texture = new THREE.TextureLoader().load('img/grid.png')
-material.map = texture
-const pmremGenerator = new THREE.PMREMGenerator(renderer)
-const envTexture = new THREE.CubeTextureLoader().load(
-    [
-        'img/px_25.jpg',
-        'img/nx_25.jpg',
-        'img/py_25.jpg',
-        'img/ny_25.jpg',
-        'img/pz_25.jpg',
-        'img/nz_25.jpg',
-    ],
-    () => {
-        material.envMap = pmremGenerator.fromCubemap(envTexture).texture
-        pmremGenerator.dispose()
-    }
-)
-
 {
     //create a cube and sphere and intersect them
     const cubeMesh = new THREE.Mesh(
