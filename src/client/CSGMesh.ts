@@ -15,9 +15,14 @@
  * - Converted var to const and let
  * - Some Refactoring
  * - support for three r141
+ * - updated for three r150
  */
 
 import * as THREE from 'three'
+
+// # class CSG
+// Holds a binary space partition tree representing a 3D solid. Two solids can
+// be combined using the `union()`, `subtract()`, and `intersect()` methods.
 
 class CSG {
     polygons: Polygon[]
@@ -26,10 +31,8 @@ class CSG {
         this.polygons = []
     }
     clone() {
-        const csg = new CSG()
-        csg.polygons = this.polygons.map(function (p) {
-            return p.clone()
-        })
+        let csg = new CSG()
+        csg.polygons = this.polygons.map((p) => p.clone())
         return csg
     }
 
@@ -79,30 +82,27 @@ class CSG {
     // Return a new CSG solid with solid and empty space switched. This solid is
     // not modified.
     inverse() {
-        const csg = this.clone()
-        csg.polygons.map(function (p) {
-            p.flip()
-        })
+        let csg = this.clone()
+        csg.polygons.forEach((p) => p.flip())
         return csg
     }
 
     // Construct a CSG solid from a list of `Polygon` instances.
     static fromPolygons = function (polygons: Polygon[]) {
-        const csg = new CSG()
+        let csg = new CSG()
         csg.polygons = polygons
         return csg
     }
 
-    static fromGeometry = function (geom: THREE.BufferGeometry, objectIndex?: object) {
+    static fromGeometry = function (geom: THREE.BufferGeometry, objectIndex?: number) {
         let polys = []
-        let posattr = geom.attributes.position
-        let normalattr = geom.attributes.normal
-        let uvattr = geom.attributes.uv
-        let colorattr = geom.attributes.color
-        let index: number[]
-        if (geom.index) {
-            index = geom.index.array as number[]
-        } else {
+        let posattr = geom.attributes.position as THREE.BufferAttribute
+        let normalattr = geom.attributes.normal as THREE.BufferAttribute
+        let uvattr = geom.attributes.uv as THREE.BufferAttribute
+        let colorattr = geom.attributes.color as THREE.BufferAttribute
+        let index
+        if (geom.index) index = geom.index.array
+        else {
             index = new Array((posattr.array.length / posattr.itemSize) | 0)
             for (let i = 0; i < index.length; i++) index[i] = i
         }
@@ -120,8 +120,8 @@ class CSG {
                 let nx = normalattr.array[vp]
                 let ny = normalattr.array[vp + 1]
                 let nz = normalattr.array[vp + 2]
-                let u = uvattr.array[vt]
-                let v = uvattr.array[vt + 1]
+                //let u = uvattr.array[vt]
+                //let v = uvattr.array[vt + 1]
                 vertices[j] = new Vertex(
                     {
                         x: x,
@@ -133,11 +133,12 @@ class CSG {
                         y: ny,
                         z: nz,
                     } as Vector,
-                    {
-                        x: u,
-                        y: v,
-                        z: 0,
-                    } as Vector,
+                    uvattr &&
+                        ({
+                            x: uvattr.array[vt],
+                            y: uvattr.array[vt + 1],
+                            z: 0,
+                        } as Vector),
                     colorattr &&
                         ({
                             x: colorattr.array[vt],
@@ -148,14 +149,15 @@ class CSG {
             }
             polys[pli] = new Polygon(vertices, objectIndex)
         }
+
         return CSG.fromPolygons(polys)
     }
 
     private static ttvv0 = new THREE.Vector3()
     private static tmpm3 = new THREE.Matrix3()
 
-    static fromMesh = function (mesh: THREE.Mesh, objectIndex?: object) {
-        const csg = CSG.fromGeometry(mesh.geometry, objectIndex)
+    static fromMesh = function (mesh: THREE.Mesh, objectIndex?: number) {
+        let csg = CSG.fromGeometry(mesh.geometry, objectIndex)
         CSG.tmpm3.getNormalMatrix(mesh.matrix)
         for (let i = 0; i < csg.polygons.length; i++) {
             let p = csg.polygons[i]
@@ -198,9 +200,10 @@ class CSG {
         }
     }
 
-    static toMesh = function (csg: CSG, toMatrix: THREE.Matrix4, toMaterial?: THREE.Material) {
+    static toGeometry = function (csg: CSG) {
         let ps = csg.polygons
-        let geom: THREE.BufferGeometry
+        let geom
+        let g2
 
         let triCount = 0
         ps.forEach((p) => (triCount += p.vertices.length - 2))
@@ -208,17 +211,25 @@ class CSG {
 
         let vertices = CSG.nbuf3(triCount * 3 * 3)
         let normals = CSG.nbuf3(triCount * 3 * 3)
-        let uvs = CSG.nbuf2(triCount * 2 * 3)
+
+        let uvs: any
         let colors: any
-        let grps: any[] = []
+        const grps: { [key: number]: number[] } = {}
+
         ps.forEach((p) => {
             let pvs = p.vertices
             let pvlen = pvs.length
             if (p.shared !== undefined) {
                 if (!grps[p.shared]) grps[p.shared] = []
             }
-            if (pvlen && pvs[0].color !== undefined) {
-                if (!colors) colors = CSG.nbuf3(triCount * 3 * 3)
+
+            if (pvlen) {
+                if (pvs[0].color !== undefined) {
+                    if (!colors) colors = CSG.nbuf3(triCount * 3 * 3)
+                }
+                if (pvs[0].uv !== undefined) {
+                    if (!uvs) uvs = CSG.nbuf2(triCount * 2 * 3)
+                }
             }
             for (let j = 3; j <= pvlen; j++) {
                 p.shared !== undefined &&
@@ -233,9 +244,9 @@ class CSG {
                 normals.write(pvs[0].normal)
                 normals.write(pvs[j - 2].normal)
                 normals.write(pvs[j - 1].normal)
-                uvs.write(pvs[0].uv)
-                uvs.write(pvs[j - 2].uv)
-                uvs.write(pvs[j - 1].uv)
+                uvs &&
+                    pvs[0].uv &&
+                    (uvs.write(pvs[0].uv) || uvs.write(pvs[j - 2].uv) || uvs.write(pvs[j - 1].uv))
                 colors &&
                     (colors.write(pvs[0].color) ||
                         colors.write(pvs[j - 2].color) ||
@@ -244,18 +255,30 @@ class CSG {
         })
         geom.setAttribute('position', new THREE.BufferAttribute(vertices.array, 3))
         geom.setAttribute('normal', new THREE.BufferAttribute(normals.array, 3))
-        geom.setAttribute('uv', new THREE.BufferAttribute(uvs.array, 2))
+        uvs && geom.setAttribute('uv', new THREE.BufferAttribute(uvs.array, 2))
         colors && geom.setAttribute('color', new THREE.BufferAttribute(colors.array, 3))
-        if (grps.length) {
+        if (Object.keys(grps).length) {
             let index: any[] = []
             let gbase = 0
-            for (let gi = 0; gi < grps.length; gi++) {
-                geom.addGroup(gbase, grps[gi].length, gi)
-                gbase += grps[gi].length
-                index = index.concat(grps[gi])
+            for (let gi = 0; gi < Object.keys(grps).length; gi++) {
+                const key = Number(Object.keys(grps)[gi])
+                geom.addGroup(gbase, grps[key].length, gi)
+                gbase += grps[key].length
+                index = index.concat(grps[key])
             }
             geom.setIndex(index)
         }
+        g2 = geom
+
+        return geom
+    }
+
+    static toMesh = function (
+        csg: CSG,
+        toMatrix: THREE.Matrix4,
+        toMaterial?: THREE.Material | THREE.Material[]
+    ) {
+        let geom = CSG.toGeometry(csg)
 
         let inv = new THREE.Matrix4().copy(toMatrix).invert()
         geom.applyMatrix4(inv)
@@ -270,6 +293,7 @@ class CSG {
         return m
     }
 }
+
 // # class Vector
 
 // Represents a 3D vector.
@@ -282,6 +306,7 @@ class Vector {
     x: number
     y: number
     z: number
+
     constructor(x = 0, y = 0, z = 0) {
         this.x = x
         this.y = y
@@ -327,7 +352,7 @@ class Vector {
         return this
     }
     lerp(a: Vector, t: number) {
-        return this.add(tv0.copy(a).sub(this).times(t))
+        return this.add(Vector.tv0.copy(a).sub(this).times(t))
     }
     unit() {
         return this.dividedBy(this.length())
@@ -356,11 +381,11 @@ class Vector {
     dot(b: Vector) {
         return this.x * b.x + this.y * b.y + this.z * b.z
     }
-}
 
-//Temporaries used to avoid internal allocation..
-let tv0 = new Vector(0, 0, 0)
-let tv1 = new Vector(0, 0, 0)
+    //Temporaries used to avoid internal allocation..
+    static tv0 = new Vector()
+    static tv1 = new Vector()
+}
 
 // # class Vertex
 
@@ -375,13 +400,12 @@ let tv1 = new Vector(0, 0, 0)
 class Vertex {
     pos: Vector
     normal: Vector
-    uv: Vector
+    uv?: Vector
     color: any
     constructor(pos: Vector, normal: Vector, uv?: Vector, color?: Vector) {
         this.pos = new Vector().copy(pos)
         this.normal = new Vector().copy(normal)
-        this.uv = new Vector().copy(uv)
-        this.uv.z = 0
+        uv && (this.uv = new Vector().copy(uv)) && (this.uv.z = 0)
         color && (this.color = new Vector().copy(color))
     }
 
@@ -402,7 +426,7 @@ class Vertex {
         return new Vertex(
             this.pos.clone().lerp(other.pos, t),
             this.normal.clone().lerp(other.normal, t),
-            this.uv.clone().lerp(other.uv, t),
+            this.uv && other.uv && this.uv.clone().lerp(other.uv, t),
             this.color && other.color && this.color.clone().lerp(other.color, t)
         )
     }
@@ -484,7 +508,7 @@ class Plane {
                     if ((ti | tj) == SPANNING) {
                         let t =
                             (this.w - this.normal.dot(vi.pos)) /
-                            this.normal.dot(tv0.copy(vj.pos).sub(vi.pos))
+                            this.normal.dot(Vector.tv0.copy(vj.pos).sub(vi.pos))
                         let v = vi.interpolate(vj, t)
                         f.push(v)
                         b.push(v.clone())
@@ -501,7 +525,7 @@ class Plane {
     static EPSILON = 1e-5
 
     static fromPoints = function (a: Vector, b: Vector, c: Vector) {
-        let n = tv0.copy(b).sub(a).cross(tv1.copy(c).sub(a)).normalize()
+        let n = Vector.tv0.copy(b).sub(a).cross(Vector.tv1.copy(c).sub(a)).normalize()
         return new Plane(n.clone(), n.dot(a))
     }
 }
@@ -519,17 +543,13 @@ class Plane {
 
 class Polygon {
     vertices: Vertex[]
-    shared: any
+    shared?: number
     plane: Plane
 
-    constructor(vertices: Vertex[], shared?: any) {
+    constructor(vertices: Vertex[], shared?: number) {
         this.vertices = vertices
         this.shared = shared
-        this.plane = Plane.fromPoints(
-            vertices[0].pos as Vector,
-            vertices[1].pos as Vector,
-            vertices[2].pos as Vector
-        )
+        this.plane = Plane.fromPoints(vertices[0].pos, vertices[1].pos, vertices[2].pos)
     }
     clone() {
         return new Polygon(
@@ -538,7 +558,7 @@ class Polygon {
         )
     }
     flip() {
-        this.vertices.reverse().map((v) => v.flip())
+        this.vertices.reverse().forEach((v) => v.flip())
         this.plane.flip()
     }
 }
@@ -586,14 +606,15 @@ class Node {
     // tree.
     clipPolygons(polygons: Polygon[]) {
         if (!this.plane) return polygons.slice()
-        let front: Polygon[] = []
-        let back: Polygon[] = []
+        let front: Polygon[] = [],
+            back: Polygon[] = []
         for (let i = 0; i < polygons.length; i++) {
             this.plane.splitPolygon(polygons[i], front, back, front, back)
         }
         if (this.front) front = this.front.clipPolygons(front)
         if (this.back) back = this.back.clipPolygons(back)
         else back = []
+        //return front;
         return front.concat(back)
     }
 
@@ -620,8 +641,8 @@ class Node {
     build(polygons: Polygon[]) {
         if (!polygons.length) return
         if (!this.plane) this.plane = polygons[0].plane.clone()
-        let front: Polygon[] = []
-        let back: Polygon[] = []
+        let front: Polygon[] = [],
+            back: Polygon[] = []
         for (let i = 0; i < polygons.length; i++) {
             this.plane.splitPolygon(polygons[i], this.polygons, this.polygons, front, back)
         }
