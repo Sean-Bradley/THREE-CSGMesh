@@ -3,7 +3,8 @@
         "target": "ES6",
         "moduleResolution": "node",
         "strict": true,
-        "outDir": "../../dist/client"
+        "outDir": "../../dist/client",
+        "allowSyntheticDefaultImports": true 
     },
     "include": ["**/*.ts"]
 }

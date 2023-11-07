@@ -1,31 +1,15 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import { CSG } from './CSGMesh'
 
 const scene = new THREE.Scene()
 
-var light1 = new THREE.SpotLight()
-light1.position.set(2.5, 5, 5)
-light1.angle = Math.PI / 4
-light1.penumbra = 0.5
-light1.castShadow = true
-light1.shadow.mapSize.width = 1024
-light1.shadow.mapSize.height = 1024
-light1.shadow.camera.near = 0.5
-light1.shadow.camera.far = 20
-scene.add(light1)
-
-var light2 = new THREE.SpotLight()
-light2.position.set(-2.5, 5, 5)
-light2.angle = Math.PI / 4
-light2.penumbra = 0.5
-light2.castShadow = true
-light2.shadow.mapSize.width = 1024
-light2.shadow.mapSize.height = 1024
-light2.shadow.camera.near = 0.5
-light2.shadow.camera.far = 20
-scene.add(light2)
+new RGBELoader().load('./img/kloppenheim_06_puresky_1k.hdr', function (texture) {
+    texture.mapping = THREE.EquirectangularReflectionMapping
+    scene.environment = texture
+})
 
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
 camera.position.x = 0.5
@@ -127,7 +111,7 @@ function onWindowResize() {
     render()
 }
 
-const stats = Stats()
+const stats = new Stats()
 document.body.appendChild(stats.dom)
 
 function animate() {
